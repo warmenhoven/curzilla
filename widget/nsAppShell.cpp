@@ -38,7 +38,6 @@
 #include "nsIServiceManager.h"
 #include "plhash.h"
 #include <ctype.h>
-#include <curses.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -116,7 +115,6 @@ nsAppShell::Run(void)
 
 	int curs_state = curs_set(0);
 	refresh();
-	endwin();
 
 	INF(("nsAppShell entering inf. loop"));
 	while (!mQuitNow) {

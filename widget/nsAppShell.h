@@ -42,13 +42,15 @@
 #define FORCE_PR_LOG
 #include "prlog.h"
 
+#include <curses.h>
+
 extern PRLogModuleInfo *gWidgetLog;
 
 #define DBG(args) PR_LOG(gWidgetLog, 4, args)
 #define LOG(args) PR_LOG(gWidgetLog, 3, args)
 #define INF(args) PR_LOG(gWidgetLog, 2, args)
 #define WRN(args) PR_LOG(gWidgetLog, 1, args)
-#define ERR(args) PR_LOG(gWidgetLog, 0, args)
+#define ERRLOG(args) PR_LOG(gWidgetLog, 0, args)
 
 class nsAppShell : public nsIAppShell {
 public:

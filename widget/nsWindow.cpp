@@ -365,6 +365,9 @@ NS_IMETHODIMP
 nsWindow::SetTitle(const nsAString& aTitle)
 {
 	DBG(("nsWindow::SetTitle()\n"));
+	NS_ConvertUCS2toUTF8 utf8title(aTitle);
+	mvaddstr(0, COLS - strlen((const char *)utf8title.get()) - 1, utf8title.get());
+	refresh();
 	return NS_OK;
 }
 
