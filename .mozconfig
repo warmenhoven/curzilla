@@ -1,0 +1,47 @@
+# cvs
+mk_add_options CVSCO_LOGFILE=/dev/null
+
+# the build
+ac_add_options --silent
+mk_add_options MOZ_MAKE_FLAGS=-s
+mk_add_options RUN_AUTOCONF_LOCALLY=1
+
+# application: firefox (browser) or mozilla (suite)
+ac_add_options --enable-application=browser
+mk_add_options MOZ_CO_PROJECT=browser
+
+# this works for suite but not browser?
+#ac_add_options --with-user-appdir=.curzilla
+
+# being curses-based
+ac_add_options --disable-accessibility
+ac_add_options --disable-freetype2
+ac_add_options --disable-gnomeui
+ac_add_options --disable-mathml
+ac_add_options --disable-postscript
+ac_add_options --disable-xft
+ac_add_options --disable-xprint
+ac_add_options --enable-default-toolkit=curses
+ac_add_options --enable-image-decoders=none
+
+# debug
+#ac_add_options --disable-debug
+#ac_add_options --disable-tests
+#ac_add_options --enable-debug
+#ac_add_options --enable-strip
+#ac_add_options --enable-timeline
+
+# "slimming"
+ac_add_options --disable-composer
+ac_add_options --disable-gnomevfs
+ac_add_options --disable-installer
+ac_add_options --disable-jsd
+ac_add_options --disable-ldap
+ac_add_options --disable-mailnews
+ac_add_options --disable-oji
+ac_add_options --disable-profilesharing
+ac_add_options --enable-extensions=cookie,xmlextras,p3p,transformiix,universalchardet,layout-debug
+ac_add_options --enable-plaintext-editor-only
+
+# miscellaneous
+ac_add_options --enable-crypto
