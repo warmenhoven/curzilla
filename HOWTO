@@ -28,3 +28,16 @@ viewer/ becomes mozilla/webshell/tests/viewer/unix/curses/
 7. Run the viewer application:
 
 ~/mozilla/dist/bin $ ./run-mozilla.sh ./viewer [ url ]
+
+So that's really it.
+
+You have to keep in mind, this is mostly just a sick joke. It won't ever be
+correct, no matter how intelligent the gfx section is, because the layout
+engine has the underlying assumption that the gfx engine is not character-based
+but graphics-based. For example, layout thinks can have a row of text that's
+ten pixels high and three pixels below it (just enough for a table, say)
+another row of text that's ten pixels. So this is mostly only useful for
+laughing at, and actually is a pretty good base for starting a new backend for
+a graphics-based system (say, ggi or something). But don't think you're ever
+going to get a curses-based mozilla without severely rewriting the layout
+engine.
