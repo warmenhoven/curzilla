@@ -54,7 +54,7 @@ NS_IMETHODIMP
 nsScreenCurses::GetPixelDepth(PRInt32 *aPixelDepth)
 {
 	DBG(("nsScreenCurses::GetPixelDepth()\n"));
-	*aPixelDepth = 8;
+	*aPixelDepth = 4;
 	return NS_OK;
 }
 
@@ -71,8 +71,8 @@ nsScreenCurses::GetRect(PRInt32 *outLeft, PRInt32 *outTop, PRInt32 *outWidth, PR
 	DBG(("nsScreenCurses::GetRect()\n"));
 	*outTop = 0;
 	*outLeft = 0;
-	*outWidth = COLS * 5;
-	*outHeight = LINES * 8;
+	*outWidth = COLS * 6;
+	*outHeight = (LINES - 1) * 10;
 	return NS_OK;
 }
 
@@ -82,7 +82,7 @@ nsScreenCurses::GetAvailRect(PRInt32 *outLeft, PRInt32 *outTop, PRInt32 *outWidt
 	DBG(("nsScreenCurses::GetAvailRect()\n"));
 	*outTop = 0;
 	*outLeft = 0;
-	*outWidth = COLS * 5;
-	*outHeight = LINES * 8;
+	*outWidth = COLS * 6;
+	*outHeight = (LINES - 1) * 10;
 	return NS_OK;
 }

@@ -178,7 +178,7 @@ class nsRenderingContextCurses : public nsRenderingContextImpl
 					   const nsRect * aSrcRect, const nsRect * aDestRect);
 
 		NS_IMETHOD GetBackbuffer(const nsRect &aRequestedSize, const nsRect &aMaxSize,
-					 nsIDrawingSurface* &aBackbuffer);
+					 PRBool aForBlending, nsIDrawingSurface* &aBackbuffer);
 		NS_IMETHOD ReleaseBackbuffer(void);
 
 #ifdef MOZ_MATHML
@@ -204,6 +204,8 @@ class nsRenderingContextCurses : public nsRenderingContextImpl
 
 		float                   mP2T;
 		nsIDeviceContext       *mContext;
+		nscolor			mCurrentColor;
+		nsLineStyle		mCurrentLineStyle;
 		nsIFontMetrics         *mFontMetrics;
 		nsDrawingSurfaceCurses *mSurface;
 		nsDrawingSurfaceCurses *mOffscreenSurface;

@@ -48,23 +48,23 @@ nsFontMetricsCurses::nsFontMetricsCurses()
 	mDeviceContext = nsnull;
 	mFont = nsnull;
 
-	mHeight = 10;
+	mHeight = 9;
 	mAscent = 7;
-	mDescent = 2;
+	mDescent = -2;
 	mLeading = 1;
-	mEmHeight = 10;
+	mEmHeight = 9;
 	mEmAscent = 7;
-	mEmDescent = 2;
-	mMaxHeight = 10;
+	mEmDescent = -2;
+	mMaxHeight = 9;
 	mMaxAscent = 7;
-	mMaxDescent = 2;
-	mMaxAdvance = 0;
-	mXHeight = 10;
+	mMaxDescent = -2;
+	mMaxAdvance = 6;
+	mXHeight = 9;
 	mSuperscriptOffset = 0;
 	mSubscriptOffset = 0;
-	mStrikeoutSize = 0;
+	mStrikeoutSize = 1;
 	mStrikeoutOffset = 0;
-	mUnderlineSize = 10;
+	mUnderlineSize = 1;
 	mUnderlineOffset = 0;
 	mSpaceWidth = 5;
 	mAveCharWidth = 5;
@@ -94,7 +94,7 @@ FontEnumCallback(const nsString& aFamily, PRBool aGeneric, void *aData)
 	LOG(("nsFontMetricsCurses::FontEnumCallback()\n"));
 	INF(("font = '%s'\n", NS_LossyConvertUCS2toASCII(aFamily).get()));
 
-	return PR_FALSE;
+	return PR_TRUE;
 }
 
 NS_IMETHODIMP

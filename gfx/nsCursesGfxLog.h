@@ -39,12 +39,14 @@
 #define FORCE_PR_LOG
 #include "prlog.h"
 
+#include <curses.h>
+
 extern PRLogModuleInfo *gGfxLog;
 
 #define DBG(args) PR_LOG(gGfxLog, 4, args)
 #define LOG(args) PR_LOG(gGfxLog, 3, args)
 #define INF(args) PR_LOG(gGfxLog, 2, args)
 #define WRN(args) PR_LOG(gGfxLog, 1, args)
-#define ERR(args) PR_LOG(gGfxLog, 0, args)
+#define ERRLOG(args) PR_LOG(gGfxLog, 0, args)
 
 #endif /* nsCursesGfxLog_h__ */

@@ -44,6 +44,8 @@ nsRenderingContextCurses::nsRenderingContextCurses()
 {
 	LOG(("nsRenderingContextCurses::nsRenderingContextCurses()\n"));
 	mP2T = 1.0f;
+	mCurrentColor = nsnull;
+	mCurrentLineStyle = nsLineStyle_kSolid;
 	mFontMetrics = nsnull;
 	mClipRegion = nsnull;
 	mContext = nsnull;
@@ -105,7 +107,8 @@ NS_IMETHODIMP
 nsRenderingContextCurses::GetHints(PRUint32& aResult)
 {
 	LOG(("nsRenderingContextCurses::GetHints()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	aResult = 0;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -185,14 +188,29 @@ nsRenderingContextCurses::IsVisibleRect(const nsRect& aRect,
 					PRBool &aVisible)
 {
 	LOG(("nsRenderingContextCurses::IsVisibleRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	aVisible = PR_TRUE;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::GetClipRect(nsRect &aRect, PRBool &aClipValid)
 {
 	LOG(("nsRenderingContextCurses::GetClipRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	PRInt32 x, y, w, h;
+
+	if (!mClipRegion)
+		return NS_ERROR_FAILURE;
+
+	if (!mClipRegion->IsEmpty()) {
+		mClipRegion->GetBoundingBox(&x,&y,&w,&h);
+		aRect.SetRect(x,y,w,h);
+		aClipValid = PR_TRUE;
+	} else {
+		aRect.SetRect(0,0,0,0);
+		aClipValid = PR_FALSE;
+	}
+
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -200,7 +218,7 @@ nsRenderingContextCurses::SetClipRect(const nsRect& aRect,
 				      nsClipCombine aCombine)
 {
 	LOG(("nsRenderingContextCurses::SetClipRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -208,14 +226,14 @@ nsRenderingContextCurses::SetClipRegion(const nsIRegion& aRegion,
 					nsClipCombine aCombine)
 {
 	LOG(("nsRenderingContextCurses::SetClipRegion()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::CopyClipRegion(nsIRegion &aRegion)
 {
 	LOG(("nsRenderingContextCurses::CopyClipRegion()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -229,14 +247,16 @@ NS_IMETHODIMP
 nsRenderingContextCurses::SetColor(nscolor aColor)
 {
 	LOG(("nsRenderingContextCurses::SetColor()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	mCurrentColor = aColor;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::GetColor(nscolor &aColor) const
 {
 	LOG(("nsRenderingContextCurses::GetColor()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	aColor = mCurrentColor;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -268,14 +288,16 @@ NS_IMETHODIMP
 nsRenderingContextCurses::SetLineStyle(nsLineStyle aLineStyle)
 {
 	LOG(("nsRenderingContextCurses::SetLineStyle()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	mCurrentLineStyle = aLineStyle;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::GetLineStyle(nsLineStyle &aLineStyle)
 {
 	LOG(("nsRenderingContextCurses::GetLineStyle()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	aLineStyle = mCurrentLineStyle;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -293,14 +315,16 @@ NS_IMETHODIMP
 nsRenderingContextCurses::Translate(nscoord aX, nscoord aY)
 {
 	LOG(("nsRenderingContextCurses::Translate()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	mTranMatrix->AddTranslation((float)aX,(float)aY);
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::Scale(float aSx, float aSy)
 {
 	LOG(("nsRenderingContextCurses::Scale()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	mTranMatrix->AddScale(aSx, aSy);
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -317,28 +341,51 @@ nsRenderingContextCurses::CreateDrawingSurface(const nsRect &aBounds,
 					       nsIDrawingSurface* &aSurface)
 {
 	LOG(("nsRenderingContextCurses::CreateDrawingSurface()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	if (nsnull == mSurface) {
+		aSurface = nsnull;
+		return NS_ERROR_FAILURE;
+	}
+
+	nsresult rv = NS_OK;
+	nsDrawingSurfaceCurses *surf = new nsDrawingSurfaceCurses();
+
+	if (surf) {
+		NS_ADDREF(surf);
+		PushState();
+		mClipRegion = nsnull;
+		PopState();
+	} else {
+		rv = NS_ERROR_FAILURE;
+	}
+
+	aSurface = surf;
+
+	return rv;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::DestroyDrawingSurface(nsIDrawingSurface* aDS)
 {
 	LOG(("nsRenderingContextCurses::DestroyDrawingSurface()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	nsDrawingSurfaceCurses *surf = (nsDrawingSurfaceCurses *) aDS;
+
+	NS_IF_RELEASE(surf);
+
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::DrawLine(nscoord aX0, nscoord aY0, nscoord aX1, nscoord aY1)
 {
 	LOG(("nsRenderingContextCurses::DrawLine()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::DrawStdLine(nscoord aX0, nscoord aY0, nscoord aX1, nscoord aY1)
 {
 	LOG(("nsRenderingContextCurses::DrawStdLine()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 
@@ -346,91 +393,91 @@ NS_IMETHODIMP
 nsRenderingContextCurses::DrawPolyline(const nsPoint aPoints[], PRInt32 aNumPoints)
 {
 	LOG(("nsRenderingContextCurses::DrawPolyline()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::DrawRect(const nsRect& aRect)
 {
 	LOG(("nsRenderingContextCurses::DrawRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::DrawRect(nscoord aX, nscoord aY, nscoord aWidth, nscoord aHeight)
 {
 	LOG(("nsRenderingContextCurses::DrawRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::FillRect(const nsRect& aRect)
 {
 	LOG(("nsRenderingContextCurses::FillRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::FillRect(nscoord aX, nscoord aY, nscoord aWidth, nscoord aHeight)
 {
 	LOG(("nsRenderingContextCurses::FillRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::InvertRect(const nsRect& aRect)
 {
 	LOG(("nsRenderingContextCurses::InvertRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::InvertRect(nscoord aX, nscoord aY, nscoord aWidth, nscoord aHeight)
 {
 	LOG(("nsRenderingContextCurses::InvertRect()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::DrawPolygon(const nsPoint aPoints[], PRInt32 aNumPoints)
 {
 	LOG(("nsRenderingContextCurses::DrawPolygon()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::FillPolygon(const nsPoint aPoints[], PRInt32 aNumPoints)
 {
 	LOG(("nsRenderingContextCurses::FillPolygon()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::DrawEllipse(const nsRect& aRect)
 {
 	LOG(("nsRenderingContextCurses::DrawEllipse()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::DrawEllipse(nscoord aX, nscoord aY, nscoord aWidth, nscoord aHeight)
 {
 	LOG(("nsRenderingContextCurses::DrawEllipse()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::FillEllipse(const nsRect& aRect)
 {
 	LOG(("nsRenderingContextCurses::FillEllipse()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::FillEllipse(nscoord aX, nscoord aY, nscoord aWidth, nscoord aHeight)
 {
 	LOG(("nsRenderingContextCurses::FillEllipse()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -438,7 +485,7 @@ nsRenderingContextCurses::DrawArc(const nsRect& aRect,
 				  float aStartAngle, float aEndAngle)
 {
 	LOG(("nsRenderingContextCurses::DrawArc()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -447,7 +494,7 @@ nsRenderingContextCurses::DrawArc(nscoord aX, nscoord aY,
 				  float aStartAngle, float aEndAngle)
 {
 	LOG(("nsRenderingContextCurses::DrawArc()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -455,7 +502,7 @@ nsRenderingContextCurses::FillArc(const nsRect& aRect,
 				  float aStartAngle, float aEndAngle)
 {
 	LOG(("nsRenderingContextCurses::FillArc()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 
@@ -465,7 +512,7 @@ nsRenderingContextCurses::FillArc(nscoord aX, nscoord aY,
 				  float aStartAngle, float aEndAngle)
 {
 	LOG(("nsRenderingContextCurses::FillArc()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -530,6 +577,8 @@ nsRenderingContextCurses::GetWidth(const PRUnichar* aString, PRUint32 aLength,
 
 	aWidth = 6 * aLength;
 
+	DBG(("nsRenderingContextCurses::GetWidth(): %d\n", aWidth));
+
 	return NS_OK;
 }
 
@@ -537,10 +586,13 @@ NS_IMETHODIMP
 nsRenderingContextCurses::GetTextDimensions(const char* aString, PRUint32 aLength,
 					    nsTextDimensions& aDimensions)
 {
-	DBG(("nsRenderingContextCurses::GetTextDimensions()\n"));
+	char *str = strndup(aString, aLength);
 	mFontMetrics->GetMaxAscent(aDimensions.ascent);
 	mFontMetrics->GetMaxDescent(aDimensions.descent);
-	return GetWidth(aString, aLength, aDimensions.width);
+	nsresult rv = GetWidth(aString, aLength, aDimensions.width);
+	DBG(("nsRenderingContextCurses::GetTextDimensions(%s) = %d\n", str, aDimensions.width));
+	free(str);
+	return rv;
 }
 
 NS_IMETHODIMP
@@ -563,8 +615,24 @@ nsRenderingContextCurses::DrawString(const char *aString, PRUint32 aLength,
 				     nscoord aX, nscoord aY,
 				     const nscoord* aSpacing)
 {
-	LOG(("nsRenderingContextCurses::DrawString(%d, %d, %s)\n", aX, aY, aString));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	mTranMatrix->TransformCoord(&aX, &aY);
+
+	int ascent;
+	mFontMetrics->GetMaxAscent(ascent);
+	aY -= ascent;
+
+	char *str = strndup(aString, aLength);
+
+	aY /= 9;
+	aX /= 5;
+
+	LOG(("nsRenderingContextCurses::DrawString(char): %d, %d, %s\n", aX, aY, str));
+
+	mvaddstr(aY, aX, str);
+	refresh();
+
+	free(str);
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -573,8 +641,22 @@ nsRenderingContextCurses::DrawString(const PRUnichar* aString, PRUint32 aLength,
 				     PRInt32 aFontID,
 				     const nscoord* aSpacing)
 {
-	LOG(("nsRenderingContextCurses::DrawString(%d, %d, %s)\n", aX, aY, aString));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	mTranMatrix->TransformCoord(&aX, &aY);
+
+	int ascent;
+	mFontMetrics->GetMaxAscent(ascent);
+	aY -= ascent;
+
+	aY /= 9;
+	aX /= 5;
+	LOG(("nsRenderingContextCurses::DrawString(PRUnichar): %d, %d, %s\n", aX, aY, aString));
+
+	/*
+	mvaddstr(aY, aX, aString);
+	refresh();
+	*/
+
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -583,8 +665,22 @@ nsRenderingContextCurses::DrawString(const nsString& aString,
 				     PRInt32 aFontID,
 				     const nscoord* aSpacing)
 {
-	LOG(("nsRenderingContextCurses::DrawString(%d, %d, %s)\n", aX, aY, aString));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	mTranMatrix->TransformCoord(&aX, &aY);
+
+	int ascent;
+	mFontMetrics->GetMaxAscent(ascent);
+	aY -= ascent;
+
+	aY /= 9;
+	aX /= 5;
+	LOG(("nsRenderingContextCurses::DrawString(nsString): %d, %d, %s\n", aX, aY, aString.get()));
+
+	/*
+	mvaddstr(aY, aX, aString.get());
+	refresh();
+	*/
+
+	return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -594,14 +690,14 @@ nsRenderingContextCurses::CopyOffScreenBits(nsIDrawingSurface* aSrcSurf,
 					    PRUint32 aCopyFlags)
 {
 	LOG(("nsRenderingContextCurses::CopyOffScreenBits()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::RetrieveCurrentNativeGraphicData(PRUint32 * ngd)
 {
 	LOG(("nsRenderingContextCurses::RetrieveCurrentNativeGraphicData()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 #ifdef MOZ_MATHML
@@ -612,7 +708,8 @@ nsRenderingContextCurses::GetBoundingMetrics(const char*        aString,
 					     nsBoundingMetrics& aBoundingMetrics)
 {
 	LOG(("nsRenderingContextCurses::GetBoundingMetrics()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return mFontMetrics->GetBoundingMetrics(aString, aLength, aBoundingMetrics,
+						this);
 }
 
 NS_IMETHODIMP
@@ -622,7 +719,8 @@ nsRenderingContextCurses::GetBoundingMetrics(const PRUnichar*   aString,
 					     PRInt32*           aFontID)
 {
 	LOG(("nsRenderingContextCurses::GetBoundingMetrics()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return mFontMetrics->GetBoundingMetrics(aString, aLength, aBoundingMetrics,
+						aFontID, this);
 }
 
 #endif /* MOZ_MATHML */
@@ -642,20 +740,20 @@ nsRenderingContextCurses::DrawScaledImage(imgIContainer *aImage,
 					  const nsRect * aSrcRect, const nsRect * aDestRect)
 {
 	LOG(("nsRenderingContextCurses::DrawScaledImage()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::GetBackbuffer(const nsRect &aRequestedSize, const nsRect &aMaxSize,
-					nsIDrawingSurface* &aBackbuffer)
+					PRBool aForBlending, nsIDrawingSurface* &aBackbuffer)
 {
 	LOG(("nsRenderingContextCurses::GetBackbuffer()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
 
 NS_IMETHODIMP
 nsRenderingContextCurses::ReleaseBackbuffer(void)
 {
 	LOG(("nsRenderingContextCurses::ReleaseBackbuffer()\n"));
-	return NS_ERROR_NOT_IMPLEMENTED;
+	return NS_OK;
 }
