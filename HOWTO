@@ -1,0 +1,30 @@
+So here's how you get apply everything that's in this directory, and get as far
+as I've gotten:
+
+1. Get the client.mk file:
+
+~ $ cvs -z3 -d :pserver:anonymous@cvs-mirror.mozilla.org:2401/cvsroot co -f mozilla/client.mk
+
+2. Put the .mozconfig file that exists in this directory into the mozilla/ directory just created
+
+3. Pull the rest of the sources:
+
+~/mozilla $ make -f client.mk checkout
+
+4. Apply the diff:
+
+~/mozilla $ patch -p0 <../diff
+
+5. Put the directories in their places:
+
+gfx/ becomes mozilla/gfx/src/curses/
+widget/ becomes mozilla/widget/src/curses/
+viewer/ becomes mozilla/webshell/tests/viewer/unix/curses/
+
+6. Build everything:
+
+~/mozilla $ make -f client.mk build
+
+7. Run the viewer application:
+
+~/mozilla/dist/bin $ ./run-mozilla.sh ./viewer [ url ]
